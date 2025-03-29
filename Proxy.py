@@ -182,7 +182,18 @@ while True:
           break
         response += chunk
       # ~~~~ END CODE INSERT ~~~~
-      
+      response_str = response.decode('utf-8', errors='ignore')
+      status_line = response_str.split("\r\n")[0]
+
+      if "301" in status_line or "302" in status_line:
+        print("Redirect detected! Checking new location...")
+        match = re.search(r"Location: (.+)", response_str)
+        if match:
+          new_location = match.group(1).strip()
+          print(f"Redirecting to: {new_location}")
+          clientSocket.sendall(response)
+          clientSocket.close()
+          continue
       # Send the response to the client
       # ~~~~ INSERT CODE ~~~~
       clientSocket.sendall(response)
