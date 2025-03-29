@@ -119,6 +119,11 @@ while True:
     # Send back response to client 
     # ~~~~ INSERT CODE ~~~~
     response = ''.join(cacheData)
+
+# Ensure response has a valid HTTP status line
+    if not response.startswith("HTTP/1.1"):
+      response = "HTTP/1.1 200 OK\r\n" + response
+
     clientSocket.sendall(response.encode())
     print('Sent cached response to client.')
     clientSocket.close()
@@ -182,21 +187,19 @@ while True:
           break
         response += chunk
       # ~~~~ END CODE INSERT ~~~~
-      response_str = response.decode('utf-8', errors='ignore')
-      status_line = response_str.split("\r\n")[0]
-
-      if "301" in status_line or "302" in status_line:
-        print("Redirect detected! Checking new location...")
-        match = re.search(r"Location: (.+)", response_str)
+      if b"HTTP/1.1 301" in response or b"HTTP/1.1 302" in response:
+        match = re.search(rb'Location: (.+?)\r\n', response)
         if match:
-          new_location = match.group(1).strip()
-          print(f"Redirecting to: {new_location}")
-          clientSocket.sendall(response)
-          clientSocket.close()
-          continue
-      # Send the response to the client
+          redirect_url = match.group(1).decode().strip()
+          print(f"Redirect detected. New location: {redirect_url}")
+
+      # Forwarding redirected response to the client
       # ~~~~ INSERT CODE ~~~~
-      clientSocket.sendall(response)
+          clientSocket.sendall(response)
+      # Closing socket after sending response
+          clientSocket.close()
+          originServerSocket.close()
+          continue
       # ~~~~ END CODE INSERT ~~~~
 
       # Create a new file in the cache for the requested file.
