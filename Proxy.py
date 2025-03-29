@@ -187,6 +187,10 @@ while True:
           break
         response += chunk
       # ~~~~ END CODE INSERT ~~~~
+      # Checking for 404
+      if b"HTTP/1.1 404" in response:
+        print("Error 404. Page not found.")
+      # Checking for 301 or 302
       if b"HTTP/1.1 301" in response or b"HTTP/1.1 302" in response:
         match = re.search(rb'Location: (.+?)\r\n', response)
         if match:
