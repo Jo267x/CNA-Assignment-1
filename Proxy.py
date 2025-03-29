@@ -118,8 +118,11 @@ while True:
     # ProxyServer finds a cache hit
     # Send back response to client 
     # ~~~~ INSERT CODE ~~~~
-    for line in cacheData:  
-      clientSocket.sendall(line.encode()) 
+    response = ''.join(cacheData)
+    clientSocket.sendall(response.encode())
+    print('Sent cached response to client.')
+    clientSocket.close()
+    continue
     # ~~~~ END CODE INSERT ~~~~
     cacheFile.close()
     print ('Sent to the client:')
